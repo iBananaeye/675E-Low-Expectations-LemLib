@@ -1,3 +1,5 @@
+#include "config.hpp"
+
 /**
  * \file main.h
  *
@@ -14,6 +16,9 @@
 
 #ifndef _PROS_MAIN_H_
 #define _PROS_MAIN_H_
+
+#define WING_LEFT 'G'//g
+
 
 /**
  * If defined, some commonly used enums will have preprocessor macros which give
@@ -35,6 +40,11 @@
 #define PROS_USE_LITERALS
 
 #include "api.h"
+#include "skills_auton.hpp"
+#include "opcontrol.hpp"
+#include "helper_functions.hpp"
+#include "config.hpp"
+
 
 /**
  * You should add more #includes here
