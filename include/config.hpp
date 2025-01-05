@@ -16,9 +16,9 @@
 //AutoClamp Limit Switch: D
 //Doinker: H
 //Sorter: F
-enum Port : signed int
+enum Port
 {
-    /* ------ DRIVETRAIN ------ */
+     /* ------ DRIVETRAIN ------ */
     LEFT_BACK_WHEEL_PORT = -6,
     LEFT_MIDDLE_WHEEL_PORT = -11,
     LEFT_FRONT_WHEEL_PORT = -15,
@@ -29,30 +29,37 @@ enum Port : signed int
 
     /* ------ MOTORS ------ */
     INTAKE_PORT = 2,
-    CONVEYOR_PORT = 9,
+    // CONVEYOR_PORT = 9,
     WALL_STAKE_PORT = 8,
 
     /* ------ SENSORS ------ */
     COLOR_SENSOR_PORT = 10,
     IMU_PORT = 18,
+    ROTATION_SENSOR_PORT = 3,
+    PERPENDICULAR_TRACKING_ROTATION_PORT = 4,
+    PARALLEL_TRACKING_ROTATION_PORT = 5,
 
     /* ------ ADI IN/OUT ------ */
     CLAMP_PORT = 'G',
     SORTER_PORT = 'F', 
     DOINKER_PORT = 'H',
-    AUTOCLAMP_PORT = 'D'
+    AUTOCLAMP_LIMIT_SWITCH_PORT = 'D'
 };
+
 
 //All declared in config.cpp except chassis
 extern pros::Controller master;
 extern lemlib::Chassis chassis; //declared at the top of main.cpp
 
 extern pros::Motor intake;
-extern pros::Motor conveyor;
+// extern pros::Motor conveyor;
 extern pros::Motor arm;
 
 extern pros::Imu imu;
 extern pros::Optical light;
+extern pros::Rotation rotation;
+extern pros::Rotation perpendicularRotation;
+extern pros::Rotation parallelRotation;
 
 extern pros::adi::DigitalOut clamp;
 extern pros::adi::DigitalOut sorter;

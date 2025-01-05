@@ -1,7 +1,7 @@
+#include "lemlib/api.hpp" // IWYU pragma: keep
 #include "main.h"
 #include "pros/motors.h"
 #include "skills_auton.hpp"
-#include "lemlib/api.hpp" // IWYU pragma: keep
 
 pros::MotorGroup leftMotors({
   Port::LEFT_BACK_WHEEL_PORT,
@@ -20,15 +20,29 @@ lemlib::Drivetrain drivetrain{
   &leftMotors, //List of left motors
   &rightMotors, //List of right motors
   12.6, //Distance between left and right side of the drive
-  lemlib::Omniwheel::NEW_325, //Wheel diameter (May be different than what the name suggests)
-  360, //RPM of drive
+  lemlib::Omniwheel::NEW_275, //Wheel diameter (May be different than what the name suggests)
+  450, //RPM of drive
   2 //Horizontal drift, 2 is recommend value for majority omni drive
 };
+//Fix wheel dia and dist to track
+lemlib::TrackingWheel perpendicularWheel(
+  &perpendicularRotation, //Tracking wheel rotation sensor
+  lemlib::Omniwheel::NEW_2, //Omniwheel used
+  1, //Distance to tracking center
+  1 //Gear ratio
+);
+
+lemlib::TrackingWheel parallelWheel(
+  &parallelRotation, //Tracking wheel rotation sensor
+  lemlib::Omniwheel::NEW_2, //Omniwheel used
+  1, //Distance to tracking center
+  1 //Gear ratio
+);
 
 lemlib::OdomSensors odomSensors{ //Odometry method, use nullptr if you dont have
-  nullptr, //First vertical tracking wheel
+  &parallelWheel, //First vertical tracking wheel
   nullptr, //Second vertical tracking wheel
-  nullptr, //First horizontal tracking wheel
+  &perpendicularWheel, //First horizontal tracking wheel
   nullptr, //Second horizontal tracking wheel
   &imu //imu, declared in config.cpp
 };
@@ -131,15 +145,19 @@ void autonomous() {
         chassis.setPose(0,0,0);
         while (true) {
             // print robot location to the brain screen
-            master.print(1,0, "X: %.1lf Y: %.1lf",chassis.getPose().x, chassis.getPose().y); // y
-            // delay to save resources
+            master.print(0,0, "X:%.1lf Y:%.1lf",chassis.getPose().x, chassis.getPose().y);
             pros::delay(300);
-            master.print(2, 0, "R: %.1lf  ", chassis.getPose().theta);
+            master.print(1, 0, "R: %.1lf  ", chassis.getPose().theta);
             wait(300);
         }
     });
 
-  red_follow();
+  // skills();
+  red_goal_rush();
+  // bottom_red_new();
+  // bottom_red_goal_rush();
+  // red_follow();
+  screen_task.remove();
 }
 
 /**
@@ -153,29 +171,26 @@ void opcontrol() {
     chassis.setBrakeMode(pros::E_MOTOR_BRAKE_COAST);
     
     enum teamColors : int {RED,BLUE};
-    //Included for redundancy, should have been set in the auton
-    setTeam(); //no input takes color sensor input for team, RED or BLUE are valid inputs
+    setTeam(); // Included for redundancy, should have been set in the auton, no input takes color sensor input for team, RED or BLUE are valid inputs
     
     pros::Task intakeT(intakes);
-    // pros::Task intakeConSortT(intakesConSorter); // Uses the conveyor to color sort
-    //pros::Task clampT(clamps); //Purely manually controlled clamp
+    // pros::Task intakeConSortT(intakesConveyorSorter); // Uses the conveyor to color sort
+    // pros::Task clampT(clamps); //Purely manually controlled clamp
     pros::Task autoclampT(autoClamps);
-    pros::Task wall_scoreT(wall_score);
-    pros::Task sorterT(sorts);
+    pros::Task directWallScoreT(directWallScore);
+    pros::Task sorterT(sorts); //Uses a piston to sort
     pros::Task doinkerT(doinks);
     
-    // pros::Task debugTurnT(debugTurn);
-    // pros::Task debugDriveT(debugDrive);
+    pros::Task screenHandlerT(screenHandler);
 
     //Lemlib arcade drive
     while(true)
     {
-      //Get joystick values
       int leftY = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
       int rightX = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
 
       chassis.arcade(leftY, rightX);
+
       pros::delay(10);
     }
-  	pros::delay(10); 
 }

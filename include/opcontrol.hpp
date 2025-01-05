@@ -9,5 +9,4 @@ void sorts();
 void doinks();
 void autoClamps();
 
-void debugTurn();
-void debugDrive();
+void directWallScore();

@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "PleaseLemlib",
+    "project_name": "PleaseRotate",
     "target": "v5",
     "templates": {
       "LemLib": {
@@ -299,9 +299,9 @@
     },
     "upload_options": {
       "after": "screen",
-      "description": "Lemlib Post CKHS",
+      "description": "Lemlib Post OLA",
       "icon": "X",
-      "slot": 5
+      "slot": 6
     },
     "use_early_access": false
   }
