@@ -35,7 +35,7 @@ Increase kI until any minor disturbances are accounted for. You might need to ad
 void skills(){
   pros::Task autAutoClampT(autonAutoClamp);
   chassis.setBrakeMode(pros::E_MOTOR_BRAKE_HOLD);
-  arm.tare_position();
+  // arm.tare_position();
 
   chassis.setPose(36, -10, -60);
 
@@ -98,7 +98,7 @@ void bottom_red_new()
   //Moves to corner and clears with doinker
   chassis.moveToPose(7.5,-15, -5, 3000);
   chassis.waitUntilDone();
-  doink();
+  // doink();
   wait(300);
   chassis.turnToHeading(45, 1000);
   chassis.turnToHeading(-10, 1000);
@@ -176,7 +176,7 @@ void red_goal_rush()
   chassis.moveToPoint(14, -36, 4000, { .minSpeed = 80, .earlyExitRange = 10});
   chassis.moveToPose(7.5, -13, -14.5, 1500);
   chassis.waitUntilDone();
-  doink();
+  // doink();
   wait(500);
   chassis.turnToHeading(140, 2000, {.direction = lemlib::AngularDirection::CW_CLOCKWISE});
   wait(5000);
@@ -347,4 +347,63 @@ void bottom_blue_simple() {
   wait(1000);
   unclamp();
   intaker(0);
+}
+
+float MOVE_EXIT = 5;
+float TURN_EXIT = 15;
+
+
+void skills2(){
+  pros::Task autAutoClampT(autonAutoClamp);
+  chassis.setBrakeMode(pros::E_MOTOR_BRAKE_HOLD);
+
+  chassis.setPose(-60, -10, -60);
+
+  chassis.moveToPose(-52,-24,-60,3000, {.forwards = false, .lead=0.8});
+  stopWhenClamped(true);
+
+  chassis.waitUntilDone();
+  wait(1000);
+  
+  intaker(INTAKE_SPEED);
+  chassis.turnToHeading(90, 1000, { .minSpeed = 60, .earlyExitRange = 12}); // --> bottom left trio rings (looks at top right ring)
+  chassis.waitUntilDone();
+  wait(500);
+
+  moveRelative(24, 1000, {.minSpeed = 60, .earlyExitRange = MOVE_EXIT});
+  chassis.waitUntilDone();
+  wait(700);
+  turnRelative(90, 1000, {.minSpeed = 70, .earlyExitRange = TURN_EXIT});
+  chassis.waitUntilDone();
+  wait(700);
+  moveRelative(12, 1000, {.minSpeed = 60, .earlyExitRange = MOVE_EXIT});
+  chassis.waitUntilDone();
+  wait(700);
+  turnRelative(-135, 1000, {.minSpeed = 70, .earlyExitRange = TURN_EXIT});
+  chassis.waitUntilDone();
+  wait(700);
+  moveRelative(17, 1000, {.minSpeed = 60, .earlyExitRange = MOVE_EXIT}); // Collects the trio rings (3)
+  chassis.waitUntilDone();
+  wait(700);
+
+  turnRelative(-88, 1000, {.minSpeed = 70, .earlyExitRange = TURN_EXIT});
+  chassis.waitUntilDone();
+  wait(900);
+  moveRelative(27, 1000, {.minSpeed = 60, .earlyExitRange = MOVE_EXIT});
+  chassis.waitUntilDone();
+  wait(900);
+  chassis.turnToHeading(0, 1000, {.minSpeed = 70, .earlyExitRange = TURN_EXIT});
+  chassis.waitUntilDone();
+  wait(900);
+  moveRelative(24, 1000, {.minSpeed = 60, .earlyExitRange = MOVE_EXIT}); // Collects two other rings in Quad III (2)
+  chassis.waitUntilDone();
+  wait(1000);
+
+  intaker(0);
+
+  turnRelative(150, 1000, {.minSpeed = 70, .earlyExitRange = TURN_EXIT});
+  chassis.waitUntilDone();
+  wait(1000);
+
+  autAutoClampT.remove();
 }

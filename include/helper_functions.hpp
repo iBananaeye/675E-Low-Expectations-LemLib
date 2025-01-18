@@ -1,5 +1,6 @@
 #pragma once
 #include "api.h"
+#include "queue"
 
 void intaker(double v);
 void intaker_wait(double v, int time);
@@ -22,10 +23,10 @@ void wall_staker(int pos, int arm_vel);
 */
 void setWallStakePos(int pos);
 
-/**
- * @brief Extend the doinker piston
- */
-void doink();
+// /**
+//  * @brief Extend the doinker piston
+//  */
+// void doink();
 
 /**
  * @brief Retract the doinker piston
@@ -122,3 +123,7 @@ void printToController(printMessage printedMessage, int waitTimeInMs = 0, bool f
 
 void screenHandler();
 
+double convertDirectGearRatio(double input);
+
+extern std::queue<printMessage> printQueue;
+extern pros::Mutex screenMutex;

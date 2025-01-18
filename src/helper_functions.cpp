@@ -3,16 +3,16 @@
 #include "pros/adi.h"
 #include "pros/misc.h"
 #include "pros/motors.h"
-#include "string"
+// #include "string"
 #include "queue"
 
 void intaker(double v) {
-    intake.move_velocity(-v);
+    intake.move_velocity(v);
     // conveyor.move_velocity(v);
 }
 
 void intaker_wait(double v,int time) {
-    intake.move_velocity(-v);
+    intake.move_velocity(v);
     // conveyor.move_velocity(v);
 
     pros::delay(time);
@@ -31,7 +31,7 @@ void wait(int time){
 int offset = 0;
 void wall_staker(int pos, int arm_vel)
 {
-    arm.move_absolute(pos-offset, arm_vel);
+    // arm.move_absolute(pos-offset, arm_vel);
 }
 
 void setWallStakePos(int pos)
@@ -39,10 +39,10 @@ void setWallStakePos(int pos)
     offset = pos;
 }
 
-void doink()
-{
-    doinker.set_value(true);
-}
+// void doink()
+// {
+//     doinker.set_value(true);
+// }
 
 void undoink()
 {
@@ -202,6 +202,11 @@ double convertAngle(double target, double angle)
     if(angle >= target + 180)
     {
         return angle - 360;
+        
+    }
+    else if(target >= angle + 180)
+    {
+        return angle + 360;
     }
     return angle;
 }
@@ -237,9 +242,9 @@ void turnRelative(double deltaAngle, int timeout, lemlib::TurnToHeadingParams pa
 
 
 
-
 std::queue<printMessage> printQueue;
 pros::Mutex screenMutex;
+
 
 void printToController(printMessage printedMessage, int waitTimeInMs, bool finishWaiting)
 {
@@ -282,7 +287,7 @@ void screenHandler()
             printMessage message = printQueue.front();
             printQueue.pop();
             screenMutex.unlock();
-            master.print(message.rowNum, message.colNum, (message.text + (message.text.length() < 16 ? std::string(16 - message.text.length(), ' ') : "")).c_str());
+            master.print(message.rowNum, message.colNum,"%s", (message.text + (message.text.length() < 16 ? std::string(16 - message.text.length(), ' ') : "")).c_str());
             wait(250);
         }
         else
@@ -290,4 +295,9 @@ void screenHandler()
             wait(30);
         }
     }
+}
+
+double convertDirectGearRatio(double input)
+{
+    return input * 24.0/84.0 * 72.0/60.0;
 }

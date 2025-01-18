@@ -14,3 +14,5 @@ void red_goal_rush();
 void bottom_red_simple();
 void top_blue_simple();
 void bottom_blue_simple();
+
+void skills2();
