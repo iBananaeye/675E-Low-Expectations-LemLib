@@ -26,7 +26,7 @@ void setWallStakePos(int pos);
 // /**
 //  * @brief Extend the doinker piston
 //  */
-// void doink();
+void doink();
 
 /**
  * @brief Retract the doinker piston
@@ -119,7 +119,7 @@ struct printMessage
     std::string text;
 };
 
-void printToController(printMessage printedMessage, int waitTimeInMs = 0, bool finishWaiting = false);
+void printToController(printMessage printedMessage, int waitTimeInMs = 0, bool finishWaiting = false, bool rumble = false);
 
 void screenHandler();
 
@@ -127,3 +127,11 @@ double convertDirectGearRatio(double input);
 
 extern std::queue<printMessage> printQueue;
 extern pros::Mutex screenMutex;
+
+void intakeAntiJam();
+
+void setIntake(double intakevel, bool feedDirectbool = false);
+
+void deviceMonitor();
+
+bool correctIntakeJam(double intakeVel);

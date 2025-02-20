@@ -18,12 +18,27 @@ pros::Rotation perpendicularRotation(PERPENDICULAR_TRACKING_ROTATION_PORT);
 // pros::Rotation parallelRotation(PARALLEL_TRACKING_ROTATION_PORT);
 
 pros::adi::DigitalOut clamp(CLAMP_PORT);
-// pros::adi::DigitalOut sorter(SORTER_PORT);
+pros::adi::DigitalOut sorter(SORTER_PORT);
 pros::adi::DigitalOut doinker(DOINKER_PORT);
-pros::adi::DigitalIn autoClamp(AUTOCLAMP_LIMIT_SWITCH_PORT);
+pros::adi::DigitalIn leftAutoClamp(LEFT_AUTOCLAMP_LIMIT_SWITCH_PORT);
+pros::adi::DigitalIn rightAutoClamp(RIGHT_AUTOCLAMP_LIMIT_SWITCH_PORT);
 // pros::adi::DigitalOut intakeLifter(INTAKE_LIFTER_PORT);
 
 //Right out of the way
 //b doinker
 //y clamp
 //x sorter off
+
+deviceInfo devices[11] = {
+    deviceInfo(abs(LEFT_BACK_WHEEL_PORT), pros::DeviceType::motor, "LB"),
+    deviceInfo(abs(LEFT_MIDDLE_WHEEL_PORT), pros::DeviceType::motor, "LM"),
+    deviceInfo(abs(LEFT_FRONT_WHEEL_PORT), pros::DeviceType::motor, "LF"),
+    deviceInfo(abs(RIGHT_BACK_WHEEL_PORT), pros::DeviceType::motor, "RB"),
+    deviceInfo(abs(RIGHT_MIDDLE_WHEEL_PORT), pros::DeviceType::motor, "RM"),
+    deviceInfo(abs(RIGHT_FRONT_WHEEL_PORT), pros::DeviceType::motor, "RF"),
+    deviceInfo(abs(INTAKE_PORT), pros::DeviceType::motor, "Intake"),
+    deviceInfo(abs(LEFT_WALL_STAKE_PORT), pros::DeviceType::motor, "Wall"),
+    deviceInfo(abs(COLOR_SENSOR_PORT), pros::DeviceType::optical, "Color"),
+    deviceInfo(abs(ROTATION_SENSOR_PORT), pros::DeviceType::rotation, "DMech"),
+    deviceInfo(abs(IMU_PORT), pros::DeviceType::imu, "IMU")
+};

@@ -28,7 +28,7 @@ lemlib::Drivetrain drivetrain{
 lemlib::TrackingWheel perpendicularWheel(
   &perpendicularRotation, //Tracking wheel rotation sensor
   lemlib::Omniwheel::OLD_275, //Omniwheel used
-  2, //Distance to tracking center
+  1, //Distance to tracking center
   1 //Gear ratio
 );
 
@@ -42,7 +42,7 @@ lemlib::TrackingWheel perpendicularWheel(
 lemlib::OdomSensors odomSensors{ //Odometry method, use nullptr if you dont have
   nullptr, //First vertical tracking wheel
   nullptr, //Second vertical tracking wheel
-  &perpendicularWheel, //First horizontal tracking wheel
+  nullptr, //First horizontal tracking wheel
   nullptr, //Second horizontal tracking wheel
   &imu //imu, declared in config.cpp
 };
@@ -141,24 +141,39 @@ void autonomous() {
   chassis.turnToHeading(0,1000);
   chassis.waitUntilDone();
   
-  pros::Task screen_task([&]() {
-        chassis.setPose(0,0,0);
-        while (true) {
-            // print robot location to the brain screen
-            master.print(0,0, "X:%.1lf Y:%.1lf",chassis.getPose().x, chassis.getPose().y);
-            pros::delay(300);
-            master.print(1, 0, "R: %.1lf  ", chassis.getPose().theta);
-            wait(300);
-        }
-    });
+  // pros::Task screen_task([&]() {
+  //       chassis.setPose(0,0,0);
+  //       while (true) {
+  //           // print robot location to the brain screen
+  //           master.print(0,0, "X:%.1lf Y:%.1lf",chassis.getPose().x, chassis.getPose().y);
+  //           pros::delay(300);
+  //           master.print(1, 0, "R: %.1lf  ", chassis.getPose().theta);
+  //           wait(300);
+  //       }
+  //   });
+  pros::Task screenHandlerAT(screenHandler);
+ pros::Task deviceMonitorAT(deviceMonitor);
 
   // skills();
   // red_goal_rush();
   // bottom_red_new();
   // bottom_red_goal_rush();
   // red_follow();
-  skills2();
-  screen_task.remove();
+  // skills3();
+  // top_blue_simple();
+  // chassis.moveToPoint(0,12,1000, {.maxSpeed = 40});
+  // chassis.waitUntilDone();
+  // wait(2000);
+  // chassis.moveToPoint(-24,36, 3000, {.maxSpeed = 40});
+  // chassis.waitUntilDone();
+  // screen_task.remove();
+  // red_mogoRush();
+   red_hard();
+  // skillsreal();
+  // blue_simple_bottom();
+  // blue_hard();
+  screenHandlerAT.remove();
+  deviceMonitorAT.remove();
 }
 
 /**
@@ -174,18 +189,114 @@ void opcontrol() {
     enum teamColors : int {RED,BLUE};
     setTeam(RED); // Included for redundancy, should have been set in the auton, no input takes color sensor input for team, RED or BLUE are valid inputs
     
-    // pros::Task intakeT(intakes);
-    pros::Task intakeConSortT(intakesConveyorSorter); // Uses the conveyor to color sort
+    pros::Task intakeT(intakes);
+    // pros::Task intakeConSortT(intakesConveyorSorter); // Uses the conveyor to color sort
     // pros::Task clampT(clamps); //Purely manually controlled clamp
     pros::Task autoclampT(autoClamps);
     pros::Task directWallScoreT(directWallScore);
-    // pros::Task sorterT(sorts); //Uses a piston to sort
+    pros::Task sorterT(sorts); //Uses a piston to sort
     pros::Task doinkerT(doinks);
     
     // pros::Task liftsintake(lifts);
-    // pros::Task screenHandlerT(screenHandler);
+    pros::Task screenHandlerT(screenHandler);
+    pros::Task deviceMonitorT(deviceMonitor);
 
     //Lemlib arcade drive
+
+    // pros::Task screen_task([&]() {
+    //   wait(5000);
+    //     while (true) {
+    //         // print robot location to the brain screen
+    //         master.print(0,0, "%.3lf  ",intake.get_target_velocity());
+    //         wait(150);
+    //         master.print(1,0,"%.3lf",intake.get_torque());
+    //         wait(150);
+    //     }
+    // });
+
+    // pros::Task screen_task([&]() {
+    //     chassis.setPose(0,0,0);
+    //     while (true) {
+    //         // print robot location to the brain screen
+    //         master.print(0,0, "X:%.1lf Y:%.1lf",chassis.getPose().x, chassis.getPose().y);
+    //         pros::delay(300);
+    //         master.print(1, 0, "R: %.1lf  ", chassis.getPose().theta);
+    //         wait(300);
+    //     }
+    // });
+
+    //sdcard record
+    // FILE* file = fopen("/usd/data.bin", "wb");
+    // int stickData[2000];
+    // int startTime = pros::millis();
+    // int i = 0;
+    // while((int)(pros::millis-startTime) < 10000)
+    // {
+    //   int leftY = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+    //   int rightX = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+    //   stickData[i++] = leftY;
+    //   stickData[i++] = rightX;
+
+    //   chassis.arcade(leftY, rightX);
+
+    //   pros::delay(20);
+    // }
+    // chassis.arcade(0, 0);
+    // int size = sizeof(stickData) / sizeof(stickData[0]);
+    // if(file != nullptr)
+    // {
+    //   fwrite(stickData, sizeof(int), size, file);
+    //   fclose(file);
+    // }
+    // wait(5000);
+    // int readStickData[2000];
+    // FILE* file2 = fopen("/usd/data.bin", "rb");
+    // if (file2 != NULL) {
+    //     fread(readStickData, sizeof(int), 2000, file2); 
+    //     fclose(file2);
+    // }
+    // int x = 0;
+    // while(x < 1999)
+    // {
+    //   int leftY = stickData[x++];
+    //   int rightX = stickData[x++];
+
+    //   chassis.arcade(leftY, rightX);
+
+    //   pros::delay(20);
+    // }
+
+    //sdcardless record
+    // int stickData[2000];
+    // int i =0;
+    // while(i<1999)
+    // {
+    //   int leftY = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+    //   int rightX = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+    //   stickData[i++] = leftY;
+    //   stickData[i++] = rightX;
+
+    //   chassis.arcade(leftY, rightX);
+
+    //   pros::delay(20);
+    // }
+    // chassis.arcade(0, 0);
+    // while(!master.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT))
+    // {
+    //   wait(50);
+    // }
+    // wait(1000);
+    // i = 0;
+    // while(i < 1999)
+    // {
+    //   int leftY = stickData[i++];
+    //   int rightX = stickData[i++];
+
+    //   chassis.arcade(leftY, rightX);
+    //   pros::delay(20);
+    // }
+    // chassis.arcade(0, 0);
+
     while(true)
     {
       int leftY = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
@@ -193,6 +304,12 @@ void opcontrol() {
 
       chassis.arcade(leftY, rightX);
 
-      pros::delay(10);
+      pros::delay(20);
     }
 }
+
+
+
+
+//To-do
+//toggle color sort with ring over sensor

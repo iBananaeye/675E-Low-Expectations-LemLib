@@ -352,58 +352,493 @@ void bottom_blue_simple() {
 float MOVE_EXIT = 5;
 float TURN_EXIT = 15;
 
-
+double intakeVel = 475;
+// basically match blue top
 void skills2(){
   pros::Task autAutoClampT(autonAutoClamp);
+  // pros::Task intakeAntiJamT(intakeAntiJam);
   chassis.setBrakeMode(pros::E_MOTOR_BRAKE_HOLD);
 
-  chassis.setPose(-60, -10, -60);
+  int initialAngle = 0;
 
-  chassis.moveToPose(-52,-24,-60,3000, {.forwards = false, .lead=0.8});
-  stopWhenClamped(true);
-
+  chassis.setPose(0, 0, 0); // Set-Up + Position robot
+  turnRelative(initialAngle, 3000);
   chassis.waitUntilDone();
+
+  moveRelative(32, 3000, {.forwards = false});
+  chassis.waitUntilDone();
+  intaker(intakeVel);
+  // pros::Task autAntiJamT(intakeAntiJam); // Intake doesn't run at all
   wait(1000);
   
-  intaker(INTAKE_SPEED);
-  chassis.turnToHeading(90, 1000, { .minSpeed = 60, .earlyExitRange = 12}); // --> bottom left trio rings (looks at top right ring)
+  turnRelative(-85, 3000);
   chassis.waitUntilDone();
-  wait(500);
+  intaker(intakeVel);
+  moveRelative(22, 3000); // collect single ring
+  chassis.waitUntilDone();
 
-  moveRelative(24, 1000, {.minSpeed = 60, .earlyExitRange = MOVE_EXIT});
+  
+  turnRelative(-78, 3000);
   chassis.waitUntilDone();
-  wait(700);
-  turnRelative(90, 1000, {.minSpeed = 70, .earlyExitRange = TURN_EXIT});
+  intaker(intakeVel);
+  moveRelative(14, 3000); // collect double rings
   chassis.waitUntilDone();
-  wait(700);
-  moveRelative(12, 1000, {.minSpeed = 60, .earlyExitRange = MOVE_EXIT});
-  chassis.waitUntilDone();
-  wait(700);
-  turnRelative(-135, 1000, {.minSpeed = 70, .earlyExitRange = TURN_EXIT});
-  chassis.waitUntilDone();
-  wait(700);
-  moveRelative(17, 1000, {.minSpeed = 60, .earlyExitRange = MOVE_EXIT}); // Collects the trio rings (3)
-  chassis.waitUntilDone();
-  wait(700);
 
-  turnRelative(-88, 1000, {.minSpeed = 70, .earlyExitRange = TURN_EXIT});
-  chassis.waitUntilDone();
-  wait(900);
-  moveRelative(27, 1000, {.minSpeed = 60, .earlyExitRange = MOVE_EXIT});
-  chassis.waitUntilDone();
-  wait(900);
-  chassis.turnToHeading(0, 1000, {.minSpeed = 70, .earlyExitRange = TURN_EXIT});
-  chassis.waitUntilDone();
-  wait(900);
-  moveRelative(24, 1000, {.minSpeed = 60, .earlyExitRange = MOVE_EXIT}); // Collects two other rings in Quad III (2)
-  chassis.waitUntilDone();
-  wait(1000);
 
+  // moveRelative(30, 3000, {.forwards = false}); // doinks and puts in corner
+  // chassis.waitUntilDone();
+  // turnRelative(105, 800);
+  // chassis.waitUntilDone();
+  // doink();
+  // moveRelative(25, 3000, {.forwards = false});
+  // chassis.waitUntilDone();
+  // turnRelative(95, 3000);
+  // chassis.waitUntilDone();
+  // turnRelative(-90, 2000);
+  // undoink();
+  // chassis.waitUntilDone();
+  // moveRelative(8, 2000, {.forwards = false});
+  // chassis.waitUntilDone();
+
+
+
+
+
+// ------------
+
+  // chassis.setPose(0, 0, 0); // Set-Up + Position robot
+  // turnRelative(initialAngle, 3000);
+  // chassis.waitUntilDone();
+
+  // moveRelative(52, 4000, {.forwards = true}); // Goes for the two blue rings in the quadruplet w/ doinker and intake
+  // intaker(200);
+  // chassis.waitUntilDone();
+  // doink();
+  // intaker(0);
+  // moveRelative(15, 2000, {.forwards = false});
+  // chassis.waitUntilDone();
+
+  // turnRelative(42, 2000);
+  // chassis.waitUntilDone();
+  // moveRelative(15, 3000, {.forwards = false});
+  // chassis.waitUntilDone();
+  // undoink();
+  // turnRelative(-35, 3000);
+  // chassis.waitUntilDone();
+  // moveRelative(10, 3000);
+  // chassis.waitUntilDone();
+
+
+
+
+
+  wait(3500);
   intaker(0);
 
-  turnRelative(150, 1000, {.minSpeed = 70, .earlyExitRange = TURN_EXIT});
-  chassis.waitUntilDone();
-  wait(1000);
+  // chassis.moveToPoint(0,-32,4000, {.forwards = false});
+  // chassis.waitUntilDone();
+
+
+
+  
 
   autAutoClampT.remove();
+  // autAntiJamT.remove();
+}
+
+void skills3()
+{
+  pros::Task autAutoClampT(autonAutoClamp);
+  pros::Task intakeAntiJamT(intakeAntiJam);
+  pros::Task dm(directWallScore);
+  chassis.setBrakeMode(pros::E_MOTOR_BRAKE_HOLD);
+  setTeam(0);
+
+
+  chassis.setPose(0, 0, 0);
+  setIntake(intakeVel, false);
+  wait(1000);
+  setIntake(0, false);
+  moveRelative(16, 2000,{.forwards=true});
+  turnRelative(-90, 2000, {.maxSpeed = 60});
+  chassis.moveToPoint(21,15,2000, {.forwards = false});
+  stopWhenClamped(true); // grab mogol
+  chassis.turnToHeading(0, 1000, {.maxSpeed = 60});
+  setIntake(600, false);
+  chassis.moveToPoint(20.5,40, 2000, {.maxSpeed = 60}); //score ring
+  chassis.waitUntilDone();
+  chassis.turnToHeading(90, 1000, {.maxSpeed = 60});
+  chassis.moveToPoint(30, 50, 3000, {.maxSpeed = 60});
+  wait(2500);
+  setIntake(intakeVel/1.7, true);
+  chassis.moveToPoint(42,86, 5000, {.maxSpeed =45}); //grab 2nd
+  chassis.waitUntilDone();
+  dm.suspend();
+  wait(1000);
+  setDirect();
+  dm.resume();
+  chassis.turnToHeading(180, 2000, {.maxSpeed = 60}, false);
+  moveRelative(22,2000, {.maxSpeed = 55});
+  // chassis.moveToPoint(43,63, 5000, {.maxSpeed =55}); //move to wall stake
+  chassis.turnToHeading(90, 2000, {.maxSpeed = 60});
+  chassis.waitUntilDone();
+  setIntake(intakeVel, false);
+  moveRelative(16, 2000, {.maxSpeed = 45});
+  chassis.waitUntilDone();
+  wait(1000);
+  chassis.moveToPoint(45, 60, 3000, {.forwards = false, .maxSpeed = 55}); // something went wrong here?????
+  chassis.turnToHeading(180, 3000, {.maxSpeed = 60});
+  chassis.waitUntilDone();
+
+  moveRelative(60, 4000, {.maxSpeed = 45}, false);
+  turnRelative(-120, 3000, {.maxSpeed = 50}, false);
+  moveRelative(15, 3000, {.maxSpeed = 55}, false);
+  chassis.turnToHeading(-15, 2000, {.maxSpeed = 55});
+  chassis.moveToPoint(57, 10, 2000, {.forwards =false, .maxSpeed =45 }); //55 20
+
+  
+
+  
+
+  chassis.waitUntilDone();
+  wait(10000);
+  autAutoClampT.remove();
+   intakeAntiJamT.remove();
+}
+
+//works
+
+void red_mogoRush()
+{
+  pros::Task autAutoClampT(autonAutoClamp);
+  pros::Task intakeAntiJamT(intakeAntiJam);
+  pros::Task autonSortT(sorts);
+  setTeam(RED);
+
+  // moveRelative(3.5*12, 4000, {.maxSpeed = 55});
+  //-55, 90, -18, 180, 6, 90, 28, -90, 18
+  chassis.moveToPose(-7, 42, -15, 3000, {.minSpeed = 115});
+  while(!isNearPos(-7,42,2,2))
+  {
+    wait(10);
+  }
+  doink();
+  wait(500);
+  chassis.turnToHeading(-77, 2000);
+  chassis.waitUntilDone();
+  undoink();
+  wait(500);
+  chassis.turnToHeading(90, 2000);
+  chassis.moveToPoint(-27, 42, 2000, {.forwards = false});
+  wait(2000);
+  intaker(intakeVel);
+  wait(1500);
+  intaker(0);
+  chassis.turnToHeading(149, 3000, {.direction=lemlib::AngularDirection::CW_CLOCKWISE}, false);
+  unclamp();
+  setIntake(intakeVel/2.4, true);
+  moveRelative(11, 2000);
+  wait(2000);
+  chassis.turnToHeading(90, 2000, {}, false);
+  chassis.moveToPoint(chassis.getPose().x-28,chassis.getPose().y,3000, {.forwards= false});
+  wait(2000);
+  setIntake(intakeVel, false);
+  wait(2000);
+  chassis.turnToHeading(-90, 2000);
+  chassis.waitUntilDone();
+  moveRelative(13,2000);
+
+
+  chassis.waitUntilDone();
+  autAutoClampT.remove();
+  intakeAntiJamT.remove();
+  autonSortT.remove();
+}
+
+
+void red_hard()
+{
+  pros::Task autAutoClampT(autonAutoClamp);
+  pros::Task intakeAntiJamT(intakeAntiJam);
+  pros::Task autonSortT(sorts);
+  setTeam(RED);
+
+  chassis.moveToPoint(0,-34, 2000, {.forwards = false});
+  chassis.turnToHeading(90, 2000);
+  setIntake(intakeVel, false);
+  chassis.waitUntilDone();
+  moveRelative(26, 2000);
+  chassis.turnToHeading(-164, 2000, {}, false);
+  moveRelative(13, 2000, {.maxSpeed = 40}, false);
+  wait(1000);
+  moveRelative(6.2, 2000, {.forwards=false, .maxSpeed = 40, }, false);
+  chassis.turnToHeading(-195, 2000, {}, false);
+  moveRelative(7, 2000);
+  wait(2500);
+  chassis.turnToHeading(-75, 2000, {}, false);
+  moveRelative(47, 2000, {.maxSpeed=20}, false);
+  setIntake(0);
+  
+
+
+
+  chassis.waitUntilDone();
+  autAutoClampT.remove();
+  intakeAntiJamT.remove();
+  autonSortT.remove();
+}
+
+void skillsreal()
+{
+  pros::Task autAutoClampT(autonAutoClamp);
+  pros::Task intakeAntiJamT(intakeAntiJam);
+  pros::Task dm(directWallScore);
+  pros::Task skillsSort(sorts);
+  chassis.setBrakeMode(pros::E_MOTOR_BRAKE_HOLD);
+  setTeam(0);
+
+
+  chassis.setPose(0, 0, 0);
+  //quad 1
+
+  setIntake(intakeVel, false);
+  wait(1000);
+  setIntake(0, false);
+  moveRelative(16, 2000,{.forwards=true});
+  turnRelative(-90, 2000, {.maxSpeed = 90});
+  chassis.moveToPoint(21,15,2000, {.forwards = false});
+  stopWhenClamped(true); // grab mogol
+  chassis.turnToHeading(0, 1000, {.maxSpeed = 90});
+  setIntake(500, false);
+  chassis.moveToPoint(20.5,40, 2000, {.maxSpeed = 60}); //score ring
+  chassis.waitUntilDone();
+  
+  chassis.turnToHeading(45, 1000, {.maxSpeed = 90});
+  chassis.moveToPose(62.5,60, 90,2000, {.maxSpeed=60}, false);
+  wait(2000);
+  moveRelative(6, 2000, {.forwards = false, .maxSpeed = 90});
+  chassis.turnToHeading(178, 2000, {},false);
+   moveRelative(53, 4000, {.maxSpeed = 45}, false);
+   wait(1000);
+  turnRelative(-120, 3000, {.maxSpeed = 50}, false);
+  moveRelative(15, 3000, {.maxSpeed = 55}, false);
+  chassis.turnToHeading(-15, 2000, {.maxSpeed = 55});
+  chassis.moveToPoint(72, 7, 2000, {.forwards =false, .maxSpeed =45 }, false); //55 20
+  unclamp();
+  setIntake(0);
+  moveRelative(6.5, 2000);
+  chassis.turnToHeading(90, 2000, {}, false);
+  moveRelative(96, 2000, {.forwards =false});
+  stopWhenClamped();
+  chassis.turnToHeading(0,2000, {}, false);
+
+
+  //quad 2
+  // moveRelative(12,2000,{.forwards = false}, false); //testing
+  // chassis.turnToHeading(-90, 2000, {}, false);
+
+
+  chassis.setPose(-22, 14.5, 0);
+
+  setIntake(intakeVel);
+  chassis.moveToPoint(-20.5,40, 2000, {.maxSpeed = 60}); //score ring
+  chassis.waitUntilDone();
+  chassis.turnToHeading(-45, 1000, {.maxSpeed = 90});
+  chassis.moveToPose(-60.5,60, -90,2000, {.maxSpeed=60}, false);
+  wait(2000);
+  moveRelative(7, 2000, {.forwards = false, .maxSpeed = 90});
+  chassis.turnToHeading(-178, 2000, {},false);
+   moveRelative(53, 4000, {.maxSpeed = 45}, false);
+   wait(1000);
+  turnRelative(120, 3000, {.maxSpeed = 50}, false);
+  moveRelative(15, 3000, {.maxSpeed = 55}, false);
+  chassis.turnToHeading(15, 2000, {.maxSpeed = 55});
+  chassis.moveToPoint(-66.5, 7, 2000, {.forwards =false, .maxSpeed =45 }, false); //55 20
+  unclamp();
+  setIntake(0);
+  moveRelative(22, 2000);
+  chassis.turnToHeading(0,2000, {}, false);
+  
+  setIntake(intakeVel/2.4, true);
+  moveRelative(60, 3000, {}, false);
+  chassis.turnToHeading(0, 2000, {}, false);
+
+    // wait(1000);
+    // light.set_led_pwm(80);
+  //  setIntake(intakeVel/2.4, true);
+   wait(1000);
+   chassis.setPose(-12,0,0);
+    // moveRelative(24, 2000, {.maxSpeed=60});
+    chassis.turnToHeading(-90, 2000, {.maxSpeed = 90});
+    chassis.moveToPose(120, 68, -125, 3000, {.forwards= false, .maxSpeed = 90});
+    stopWhenClamped();
+    wait(500);
+    setIntake(intakeVel, false);
+    moveRelative(42.5, 2000, {.maxSpeed = 90});
+    chassis.turnToHeading(140, 2000, {.maxSpeed = 90}, false);
+    moveRelative(sqrt(2) * 26, 2000, {.maxSpeed = 90});
+    wait(600);
+    chassis.turnToHeading(45, 2000, {.maxSpeed = 90}, false);
+    moveRelative(sqrt(2) * 26, 2000, {.maxSpeed = 90});
+    wait(600);
+    chassis.turnToHeading(92, 2000, {.maxSpeed = 90}, false);
+    moveRelative(22, 2000, {.maxSpeed = 90});
+    wait(600);
+    chassis.turnToHeading(0, 2000, {.maxSpeed = 90}, false);
+    moveRelative(24, 2000, {.maxSpeed = 90});
+    wait(600);
+    chassis.turnToHeading(-135, 2000, {.maxSpeed = 90}, false);
+    moveRelative(17, 2000, {.forwards = false}, false);
+    unclamp();
+    wait(2000);
+    chassis.turnToHeading(-90, 2000, {},false);
+    moveRelative(200, 20);
+
+
+
+  
+
+  chassis.waitUntilDone();
+  wait(10000);
+  autAutoClampT.remove();
+   intakeAntiJamT.remove();
+   skillsSort.remove();
+}
+
+
+void red_simple_top()
+{
+  pros::Task autAutoClampT(autonAutoClamp);
+  pros::Task intakeAntiJamT(intakeAntiJam);
+  pros::Task autonSortT(sorts);
+  setTeam(RED);
+
+  chassis.moveToPoint(0,-34, 2000, {.forwards = false});
+  chassis.turnToHeading(90, 2000);
+  setIntake(intakeVel, false);
+  chassis.waitUntilDone();
+  moveRelative(26, 2000, {}, false);
+  wait(2000);
+  moveRelative(55, 4000, {.forwards = false});
+  
+  
+
+
+
+  chassis.waitUntilDone();
+  setIntake(0);
+  autAutoClampT.remove();
+  intakeAntiJamT.remove();
+  autonSortT.remove();
+}
+
+void blue_simple_top()
+{
+  pros::Task autAutoClampT(autonAutoClamp);
+  pros::Task intakeAntiJamT(intakeAntiJam);
+  pros::Task autonSortT(sorts);
+  setTeam(BLUE);
+
+  chassis.moveToPoint(0,-34, 2000, {.forwards = false});
+  chassis.turnToHeading(-90, 2000);
+  setIntake(intakeVel, false);
+  chassis.waitUntilDone();
+  moveRelative(26, 2000, {}, false);
+  wait(2000);
+  moveRelative(55, 4000, {.forwards = false});
+  
+  
+
+
+
+  chassis.waitUntilDone();
+  setIntake(0);
+  autAutoClampT.remove();
+  intakeAntiJamT.remove();
+  autonSortT.remove();
+}
+
+void blue_hard()
+{
+  pros::Task autAutoClampT(autonAutoClamp);
+  pros::Task intakeAntiJamT(intakeAntiJam);
+  pros::Task autonSortT(sorts);
+  setTeam(RED);
+
+  chassis.moveToPoint(0,-34, 2000, {.forwards = false});
+  chassis.turnToHeading(-90, 2000);
+  setIntake(intakeVel, false);
+  chassis.waitUntilDone();
+  moveRelative(26, 2000);
+  chassis.turnToHeading(164, 2000, {}, false);
+  moveRelative(13, 2000, {.maxSpeed = 40}, false);
+  wait(1000);
+  moveRelative(6.2, 2000, {.forwards=false, .maxSpeed = 40, }, false);
+  chassis.turnToHeading(195, 2000, {}, false);
+  moveRelative(7, 2000);
+  wait(2500);
+  chassis.turnToHeading(75, 2000, {}, false);
+  moveRelative(47, 2000, {.maxSpeed=20}, false);
+  setIntake(0);
+  
+
+
+
+  chassis.waitUntilDone();
+  autAutoClampT.remove();
+  intakeAntiJamT.remove();
+  autonSortT.remove();
+}
+
+void blue_simple_bottom()
+{
+  pros::Task autAutoClampT(autonAutoClamp);
+  pros::Task intakeAntiJamT(intakeAntiJam);
+  pros::Task autonSortT(sorts);
+  setTeam(BLUE);
+
+  chassis.moveToPoint(0,-40, 2000, {.forwards = false});
+  stopWhenClamped();
+  chassis.turnToHeading(90, 2000);
+  setIntake(intakeVel, false);
+  chassis.waitUntilDone();
+  moveRelative(26, 2000, {}, false);
+  wait(2000);
+  moveRelative(50, 4000, {.forwards = false, .maxSpeed=30});
+  
+  
+
+
+
+  chassis.waitUntilDone();
+  setIntake(0);
+  autAutoClampT.remove();
+  intakeAntiJamT.remove();
+  autonSortT.remove();
+}
+
+void red_simple_bottom()
+{
+  pros::Task autAutoClampT(autonAutoClamp);
+  pros::Task intakeAntiJamT(intakeAntiJam);
+  pros::Task autonSortT(sorts);
+  setTeam(RED);
+
+  chassis.moveToPoint(0,-34, 2000, {.forwards = false});
+  chassis.turnToHeading(-90, 2000);
+  setIntake(intakeVel, false);
+  chassis.waitUntilDone();
+  moveRelative(26, 2000, {}, false);
+  wait(2000);
+  moveRelative(55, 4000, {.forwards = false});
+  
+  
+
+
+
+  chassis.waitUntilDone();
+  setIntake(0);
+  autAutoClampT.remove();
+  intakeAntiJamT.remove();
+  autonSortT.remove();
 }

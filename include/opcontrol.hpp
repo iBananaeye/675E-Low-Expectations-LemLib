@@ -12,3 +12,5 @@ void autoClamps();
 void directWallScore();
 
 void lifts();
+
+void setDirect();
