@@ -10,20 +10,16 @@
 const int ON = 1;
 const int OFF = 0;
 
-const int vel = 425;
+const int vel = 520;
 const int arm_vel = 500; 
 const int dMechVel = vel/1.6;
 
 bool clamp_state = false;
 
-//Wall Stake Positions in encoder ticks (Negative is up)
-// const int DOWN_POSITION = -15; //Not 0 to make sure the motors don't fry themselves going through metal
-// const int LOAD_POSITION = -115;
-// const int SCORE_POSITION = -555; 
-// const int INSERT_POSITION = -630;
-
 enum : int {RED, BLUE, OTHER};
 const int sorterWaitTime = 325; //time before piston is retracted
+
+
 
 void intakes() {
     while (true) {
@@ -76,53 +72,6 @@ void intakes() {
     }
 }
 
-// void intakesConveyorSorter() {
-//     int team = getTeam(); // defaults to red
-//     int color = team;
-//     bool sorterState = false;
-//     bool manual = true; // defaults to automatic
-
-    
-//     light.set_integration_time(20);
-//     printToController(printMessage(0,0,std::string("T") + (team == RED ? "R" : "B") + (manual ? "Man" : "Aut") + (color == RED ? "R" : color==OTHER ? "U" : "B")),300, true);
-//     // master.print(0,0, "T%s-%s %s ", team == RED ? "R" : "B" , manual ? "Man" : "Aut", color == RED ? "R" : color==OTHER ?"U" : "B"); //Prints 'T[Alliance Color Initial]-[Whether in auto or manual mode] [Last seen color]'
-//     while (true) {
-//         color = getRingColor();
-//         printMessage info = printMessage(0,0,std::string("T") + (team == RED ? "R" : "B") + (manual ? "Man" : "Aut") + (color == RED ? "R" : color==OTHER ? "U" : "B"));
-//         if(master.get_digital(pros::E_CONTROLLER_DIGITAL_X)) // Alternates from auto to manual mode
-//         {
-//             manual = !manual;
-//             printToController(info, 300, true);
-//             // wait(300);
-//             // master.print(0,0, "T%s-%s %s ", team == RED ? "R" : "B" , manual ? "Man" : "Aut", color == RED ? "R" : color==OTHER ?"U" : "B");
-//         }
-//         if(!manual && master.get_digital(pros::E_CONTROLLER_DIGITAL_R1) && !master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)&& color != 2 && light.get_proximity() > 215 &&color !=team && intake.get_actual_velocity() > 10)
-//         {
-//             // intaker(-vel);
-//             // wait(1000);
-//             // intaker(0);
-//             // master.print(0,0, "T%s-%s %s ", team == RED ? "R" : "B" , manual ? "Man" : "Aut", color == RED ? "R" : color==OTHER ?"U" : "B"); //Prints 'T[Alliance Color Initial]-[Whether in auto or manual mode] [Last seen color]'
-//             // wait(220);
-//             printToController(info, 190, true);
-//             intaker(-vel);
-//             double curPos = intake.get_position();
-//             while(intake.get_position() - curPos > -100)
-//             {
-//                 wait(10);
-//             }
-//             intaker(0);
-            
-//         }
-//         if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
-//             intaker(vel); //Intakes
-//         } else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
-//             intaker(-vel); //Outakes
-//         } else {
-//             intaker(0);
-//         }
-//         pros::delay(10); 
-//     }
-// }
 
 void clamps() {
     clamp.set_value(clamp_state); // retracted
@@ -137,64 +86,57 @@ void clamps() {
     }
 }
 
+bool manualSort = false; // defaults to manual
 void sorts()
 {
     int team = getTeam(); // defaults to red
     int color = team;
     bool sorterState = false;
-    bool manual = false; // defaults to manual
+    
 
     light.set_integration_time(25); //25 Millisecond refresh rate
     //The sensor can go down to 3, but brain only accepts every 20ms. Anything faster than this leds to nonsense being sensed
     
-    // wait(300);
-    // master.print(0,0, "T%s-%s %s ", team == RED ? "R" : "B" , manual ? "Man" : "Aut", color == RED ? "R" : color==OTHER ?"U" : "B"); //Prints 'T[Alliance Color Initial]-[Whether in auto or manual mode] [Last seen color]'
-    printToController(printMessage(0,0,std::string("T") + (team == RED ? "R" : "B") + (manual ? "Man" : "Aut") + (color == RED ? "R" : color==OTHER ? "U" : "B")), 300, true);
+    printToController(printMessage(0,0,std::string("T") + (team == RED ? "R" : "B") + (manualSort ? "Man" : "Aut") + (color == RED ? "R" : color==OTHER ? "U" : "B")), 300, true);
 
     sorter.set_value(OFF); //defaults to off
     while(true)
     {
         wait(15);
         color = getRingColor();
-        printMessage info = printMessage(0,0,std::string("T") + (team == RED ? "R" : "B") + (manual ? "Man" : "Aut") + (color == RED ? "R" : color==OTHER ? "U" : "B"));
+        printMessage info = printMessage(0,0,std::string("T") + (team == RED ? "R" : "B") + (manualSort ? "Man" : "Aut") + (color == RED ? "R" : color==OTHER ? "U" : "B"));
         if(master.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT)) // Alternates from auto to manual mode
         {
-            manual = !manual;
+            manualSort = !manualSort;
             sorter.set_value(OFF);
-            // wait(300);
-            // master.print(0,0, "T%s-%s %s ", team == RED ? "R" : "B" , manual ? "Man" : "Aut", color == RED ? "R" : color==OTHER ?"U" : "B");
-            printToController(printMessage(0,0,std::string("T") + (team == RED ? "R" : "B") + (manual ? "Man" : "Aut") + (color == RED ? "R" : color==OTHER ? "U" : "B")), 300, true);
+            printToController(printMessage(0,0,std::string("T") + (team == RED ? "R" : "B") + (manualSort ? "Man" : "Aut") + (color == RED ? "R" : color==OTHER ? "U" : "B")), 300, true);
         }
-        if(!manual && (color != OTHER) && light.get_proximity() == 255)
+        if(!manualSort && (color != OTHER) && light.get_proximity() == 255)
         {
             switch (color == team)
             {
                 case true:
                     sorter.set_value(OFF);
                     sorterState = OFF;
-                    // master.print(0,0, "T%s-%s %s ", team == RED ? "R" : "B" , manual ? "Man" : "Aut", color == RED ? "R" : color==OTHER ?"U" : "B");
-                    // printToController(info);
+                    printToController(info);
                     break;
                 case false:
                     sorter.set_value(ON);
-                    // master.print(0,0, "T%s-%s %s ", team == RED ? "R" : "B" , manual ? "Man" : "Aut", color == RED ? "R" : color==OTHER ?"U" : "B");
-                    // wait(sorterWaitTime);
                     double curPos = intake.get_position();
                     printToController(info, sorterWaitTime, true);
                     while(intake.get_position() - curPos < 275) //prevents wasting air if opposing rings is held over sensor
                     {
-                        if((light.get_hue() != 0 && (getRingColor() == team || getRingColor() == OTHER)) || master.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
+                        if((light.get_hue() != 0 && (getRingColor() == team || getRingColor() == OTHER)) || master.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT))
                         {
                             break;
                         }
-                        // wait(sorterWaitTime);
                         wait(10);
                     }
                     sorter.set_value(OFF);
                     break;
             }
         }
-        if(manual)
+        if(manualSort)
         {
             if(master.get_digital(pros::E_CONTROLLER_DIGITAL_UP)) //manually control like clamp
             {
@@ -222,30 +164,27 @@ void doinks()
     }
 }
 
-
+bool hasClamped = false;
+bool autoClampActive = true;
 void autoClamps()
 {  
     clamp.set_value(false);
     bool state = false;
-    bool isClamped = false;
-    bool active = true;
-    // wait(500);
-    // master.print(2,0, "%s-%s", active ? "Aut" : "Man", isClamped ? "Clamped" : "Unclamped");
-    printToController(printMessage(1,0,std::string(active ? "AutClam-" : "ManClam-") + (isClamped ? "Clamped" : "Unclamped")), 300, true);
+    printToController(printMessage(1,0,std::string(autoClampActive ? "AutClam-" : "ManClam-") + (hasClamped ? "Clamped" : "Unclamped")), 300, true);
     while(true)
     {
-        if(active && state == false && leftAutoClamp.get_value() == ON && rightAutoClamp.get_value() == ON)
+        if(autoClampActive && state == false && leftAutoClamp.get_value() == ON && rightAutoClamp.get_value() == ON)
         {
             clamp.set_value(true);
             state = true;
-            isClamped = !isClamped;
-            printToController(printMessage(1,0,std::string("AutClam-Clamped")), 450, true, true);
+            hasClamped = !hasClamped;
+            printToController(printMessage(1,0,std::string("AutClam-Clamped")), 450, true, true, ".");
         }
         if(master.get_digital(pros::E_CONTROLLER_DIGITAL_A))
         {
-            clamp.set_value(!isClamped);
-            isClamped = !isClamped;
-            printToController(printMessage(1,0,std::string(active ? "AutClam-" : "ManClam-") + (isClamped ? "Clamped" : "Unclamped")), 400, true);
+            clamp.set_value(!hasClamped);
+            hasClamped = !hasClamped;
+            printToController(printMessage(1,0,std::string(autoClampActive ? "AutClam-" : "ManClam-") + (hasClamped ? "Clamped" : "Unclamped")), 400, true);
         }
         if(leftAutoClamp.get_value() == OFF && rightAutoClamp.get_value() == OFF)
         {
@@ -253,12 +192,11 @@ void autoClamps()
         }
         if(master.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
         {
-            active = !active;
-            // wait(300);
-            // master.print(2,0, "%s-%s", active ? "Aut" : "Man", isClamped ? "Clamped" : "Unclamped");
-            printToController(printMessage(1,0,std::string(active ? "AutClam-" : "ManClam-") + (isClamped ? "Clamped" : "Unclamped")), 300, true);
+            autoClampActive = !autoClampActive;
+            printToController(printMessage(1,0,std::string(autoClampActive ? "AutClam-" : "ManClam-") + (hasClamped ? "Clamped" : "Unclamped")), 300, true);
         }
         wait(20);
+
     }
 }
 
@@ -267,8 +205,8 @@ void autoClamps()
 
 enum directWallScorePositions : signed int
 {
-    DOWN_POSITION = 2,
-    SCORE_POSITION = 175,
+    DOWN_POSITION = 0,
+    SCORE_POSITION = 125,
     OUT_POSITION = 90
 };
 
@@ -282,9 +220,8 @@ enum directWallScorePositions : signed int
     
 void directWallScore()
 {
-    
     const int waitTime = 20;
-    const int maxVelocity = 80;
+    const int maxVelocity = 200;
     
     
     double error = (armTarget - convertAngle(armTarget, rotation.get_angle()/100.0)); //Target-currentAngle in degrees;
@@ -304,8 +241,7 @@ void directWallScore()
     char* varsPIDNames[numVars] = {(char*)"kP", (char*)"kI", (char*)"kD", (char*)"Gain", (char*)"Thold"}; 
     int index = 0;
 
-    leftWallStake.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-    rightWallStake.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    wallStake.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
     rotation.set_data_rate(10);
   
   
@@ -313,7 +249,7 @@ void directWallScore()
     while(true)
     {
         
-        //----------PID----------//
+        // ----------PID----------//
         error = armTarget-convertAngle(armTarget, rotation.get_angle()/ 100.0); //degrees
         deltaTimeInMs = pros::millis() - previousTimeInMs;
 
@@ -326,13 +262,11 @@ void directWallScore()
         {
             signedMaxVelocity = correctionVelocity * maxVelocity / fabs(correctionVelocity);
 
-            leftWallStake.move_velocity((int) (fabs(correctionVelocity) < maxVelocity ? correctionVelocity : signedMaxVelocity));
-            rightWallStake.move_velocity((int) (fabs(correctionVelocity) < maxVelocity ? correctionVelocity : signedMaxVelocity));
+            wallStake.move_velocity((int) (fabs(correctionVelocity) < maxVelocity ? correctionVelocity : signedMaxVelocity));
         }
         else
         {
-            leftWallStake.move_velocity(0);
-            rightWallStake.move_velocity(0);
+            wallStake.move_velocity(0);
         }
         previousError = error;
         previousTimeInMs += deltaTimeInMs;
@@ -344,29 +278,38 @@ void directWallScore()
             armTarget = DOWN_POSITION;
             kP = 2;
             kD = 0;
-            armThreshold = 5;
+            armThreshold = 0.5;
             gain = 2;
             integral = 0;
             kI = 0;
+            // wallStake.move_velocity(200);
         }
         else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
         {
             armTarget = SCORE_POSITION;
-            kP = 2;
-            kD = 0.2;
+            kP = 3.2;
+            kD = 0.1
+            ;
             armThreshold = 1.5;
             gain = 1.75;
-            kI= 0.05;
+            kI= 0.00;
+            // wallStake.move_velocity(-200);
         }
-        else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT))
-        {
-            armTarget = OUT_POSITION;
-            kP = 2;
-            kD = 0;
-            armThreshold = 1.5;
-            gain = 1.5;
-            kI= 0;
-        }
+        // else{
+        //     wallStake.move_velocity(0);
+        // }
+
+
+
+        // else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT))
+        // {
+        //     armTarget = OUT_POSITION;
+        //     kP = 2;
+        //     kD = 0;
+        //     armThreshold = 1.5;
+        //     gain = 1.5;
+        //     kI= 0;
+        // }
 
         // :( this is way too complicated i feel sorry for whoever has to read my absurd use of pointers and ternary operators
         //----------Live-PID-Tuner----------//
@@ -410,14 +353,14 @@ void directWallScore()
 
 
 void setDirect()
-    {
-        armTarget = SCORE_POSITION;
-            kP = 2;
-            kD = 0.2;
-            armThreshold = 1.5;
-            gain = 1.75;
-            kI= 0.05;
-    }
+{
+    armTarget = SCORE_POSITION;
+    kP = 2;
+    kD = 0.2;
+    armThreshold = 1.5;
+    gain = 1.75;
+    kI= 0.05;
+}
 
 
 
@@ -474,7 +417,6 @@ void setDirect()
 //     }
 // }
 
-
 // void lifts() {
 //     intakeLifter.set_value(false); // retracted
 //     bool state = false;
@@ -488,3 +430,54 @@ void setDirect()
 //         pros::delay(10);
 //     }
 // }
+
+// void intakesConveyorSorter() {
+//     int team = getTeam(); // defaults to red
+//     int color = team;
+//     bool sorterState = false;
+//     bool manual = true; // defaults to automatic
+//     light.set_integration_time(20);
+//     printToController(printMessage(0,0,std::string("T") + (team == RED ? "R" : "B") + (manual ? "Man" : "Aut") + (color == RED ? "R" : color==OTHER ? "U" : "B")),300, true);
+//     // master.print(0,0, "T%s-%s %s ", team == RED ? "R" : "B" , manual ? "Man" : "Aut", color == RED ? "R" : color==OTHER ?"U" : "B"); //Prints 'T[Alliance Color Initial]-[Whether in auto or manual mode] [Last seen color]'
+//     while (true) {
+//         color = getRingColor();
+//         printMessage info = printMessage(0,0,std::string("T") + (team == RED ? "R" : "B") + (manual ? "Man" : "Aut") + (color == RED ? "R" : color==OTHER ? "U" : "B"));
+//         if(master.get_digital(pros::E_CONTROLLER_DIGITAL_X)) // Alternates from auto to manual mode
+//         {
+//             manual = !manual;
+//             printToController(info, 300, true);
+//             // wait(300);
+//             // master.print(0,0, "T%s-%s %s ", team == RED ? "R" : "B" , manual ? "Man" : "Aut", color == RED ? "R" : color==OTHER ?"U" : "B");
+//         }
+//         if(!manual && master.get_digital(pros::E_CONTROLLER_DIGITAL_R1) && !master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)&& color != 2 && light.get_proximity() > 215 &&color !=team && intake.get_actual_velocity() > 10)
+//         {
+//             // intaker(-vel);
+//             // wait(1000);
+//             // intaker(0);
+//             // master.print(0,0, "T%s-%s %s ", team == RED ? "R" : "B" , manual ? "Man" : "Aut", color == RED ? "R" : color==OTHER ?"U" : "B"); //Prints 'T[Alliance Color Initial]-[Whether in auto or manual mode] [Last seen color]'
+//             // wait(220);
+//             printToController(info, 190, true);
+//             intaker(-vel);
+//             double curPos = intake.get_position();
+//             while(intake.get_position() - curPos > -100)
+//             {
+//                 wait(10);
+//             }
+//             intaker(0);
+//         }
+//         if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
+//             intaker(vel); //Intakes
+//         } else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
+//             intaker(-vel); //Outakes
+//         } else {
+//             intaker(0);
+//         }
+//         pros::delay(10); 
+//     }
+// }
+
+void  updateDriverScreenInfo()
+{
+    printToController(printMessage(0,0,std::string("T") + (getTeam() == RED ? "R" : "B") + (manualSort ? "Man" : "Aut") + (getRingColor() == RED ? "R" : getRingColor()==OTHER ? "U" : "B")), 20);
+    printToController(printMessage(1,0,std::string(autoClampActive ? "AutClam-" : "ManClam-") + (hasClamped ? "Clamped" : "Unclamped")), 20, false);
+}

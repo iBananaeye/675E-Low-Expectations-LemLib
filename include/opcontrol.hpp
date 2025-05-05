@@ -14,3 +14,5 @@ void directWallScore();
 void lifts();
 
 void setDirect();
+
+void  updateDriverScreenInfo();

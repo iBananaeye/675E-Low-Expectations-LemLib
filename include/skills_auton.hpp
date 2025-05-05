@@ -47,3 +47,12 @@ void blue_simple_bottom();
 
 
 void red_simple_bottom();
+
+
+struct autonInfo
+{
+    void (*autonFunction)();
+    std::string autonName = "";
+    std::string allianceColor = "";
+};
+extern autonInfo autonList[];

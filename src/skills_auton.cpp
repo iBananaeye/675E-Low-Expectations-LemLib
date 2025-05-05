@@ -842,3 +842,14 @@ void red_simple_bottom()
   intakeAntiJamT.remove();
   autonSortT.remove();
 }
+
+autonInfo autonList[] = {
+  autonInfo(*red_mogoRush, "MogoRush", "Red"),
+  autonInfo(*red_hard, "4RingHard", "Red"),
+  autonInfo(*skillsreal, "Skills", "NoBlue"),
+  autonInfo(*red_simple_top, "2RingTop", "Red"),
+  autonInfo(*blue_simple_top, "2RingTop", "Blue"),
+  autonInfo(*blue_hard, "4RingHard", "Blue"),
+  autonInfo(*blue_simple_bottom, "2RingBot", "Blue"),
+  autonInfo(*red_simple_bottom, "2RingBot", "Red")
+};

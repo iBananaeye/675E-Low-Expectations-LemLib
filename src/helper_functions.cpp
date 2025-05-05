@@ -8,7 +8,7 @@
 
 void intaker(double v) {
     intake.move_velocity(v);
-    // conveyor.move_velocity(v);
+    conveyor.move_velocity(v);
 }
 
 void intaker_wait(double v,int time) {
@@ -28,16 +28,6 @@ void wait(int time){
 }
 
 //---------
-int offset = 0;
-void wall_staker(int pos, int arm_vel)
-{
-    // arm.move_absolute(pos-offset, arm_vel);
-}
-
-void setWallStakePos(int pos)
-{
-    offset = pos;
-}
 
 void doink()
 {
@@ -142,7 +132,6 @@ void forceClamp()
     isClamped = true;
 }
 
-
 bool getClampState()
 {
     return isClamped;
@@ -164,26 +153,6 @@ void stopWhenClamped(bool forceClampWhenDone, bool cancelAllQueuedMotions)
         forceClamp();
     }
 }
-
-
-// Unclamps, repositions, and reclamps to get a better angle of the clamp
-// This turning approach simply didn't work
-// void reClamp()
-// {
-//     wait(1000);
-//     double theta = chassis.getPose().theta;
-//     double curX = chassis.getPose().x;
-//     double curY = chassis.getPose().y;
-//     chassis.turnToHeading(theta + 25, 1000);
-//     chassis.waitUntilDone();
-//     unclamp();
-//     wait(300);
-//     chassis.turnToHeading(theta, 1000, {.earlyExitRange = 3});
-//     chassis.swingToHeading(theta+25, lemlib::DriveSide::LEFT, 1000);
-//     chassis.moveToPoint(curX - 3, curY - 3, 2000, {.forwards = false});
-//     stopWhenClamped();
-//     if(getClampState() == false) forceClamp();
-// }
 
 bool isNearPos(double x, double y, double xThreshold, double yThreshold)
 {
@@ -224,10 +193,10 @@ void moveRelative(double dist, int timeout, lemlib::MoveToPointParams params, bo
     }
     lemlib::Pose pose = chassis.getPose();
     double heading = degreesToRadians(pose.theta);
-    double deltaX = dist * sin(heading) * (params.forwards ? 1 : -1);
-    double deltaY = dist * cos(heading) * (params.forwards ? 1 : -1);
-    // double deltaX = dist * sin(heading);
-    // double deltaY = dist * cos(heading);
+    // double deltaX = dist * sin(heading) * (params.forwards ? 1 : -1);
+    // double deltaY = dist * cos(heading) * (params.forwards ? 1 : -1);
+    double deltaX = dist * sin(heading);
+    double deltaY = dist * cos(heading);
 
     chassis.moveToPoint(pose.x + deltaX, pose.y + deltaY, timeout, params, async);
 }
@@ -245,10 +214,14 @@ void turnRelative(double deltaAngle, int timeout, lemlib::TurnToHeadingParams pa
 
 
 std::queue<printMessage> printQueue;
+std::queue<printMessage> driverInfoQueue;
+std::queue<printMessage> autonInfoQueue;
 pros::Mutex screenMutex;
+int screen = 0;
+// const int numScreens = 5;
+const int maxQueueLength = 30;
 
-
-void printToController(printMessage printedMessage, int waitTimeInMs, bool finishWaiting, bool rumble)
+void printToController(printMessage printedMessage, int waitTimeInMs, bool finishWaiting, bool rumble, std::string rumblePattern)
 {
     if(waitTimeInMs != 0)
     {
@@ -258,7 +231,7 @@ void printToController(printMessage printedMessage, int waitTimeInMs, bool finis
             if(screenMutex.try_lock())
             {
                 printQueue.push(printedMessage);
-                if(rumble) printQueue.push(printMessage(-1,-1, std::string("rumble")));
+                if(rumble) printQueue.push(printMessage(-1,-1, rumblePattern));
                 screenMutex.unlock();
                 if(finishWaiting) wait(waitTimeInMs-waitedTime);
                 return;
@@ -279,48 +252,86 @@ void printToController(printMessage printedMessage, int waitTimeInMs, bool finis
 
 void screenHandler()
 {
+    int selectedAutonIndex = 0;
     wait(1000);
     while(true)
     {
-        if(!printQueue.empty())
+        wait(30);
+        if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT))
         {
-            while(!screenMutex.try_lock()) 
+            screen++;
+            if(screen==numScreens)
             {
-                wait(20);
+                screen =0;
+                updateDriverScreenInfo();
             }
-            printMessage message = printQueue.front();
-            printQueue.pop();
-            screenMutex.unlock();
-            if(message.rowNum == -1 || message.colNum == -1) master.rumble("-");
-            else master.print(message.rowNum, message.colNum,"%s", (message.text + (message.text.length() < 16 ? std::string(16 - message.text.length(), ' ') : "")).c_str());
-            wait(125);
+            switch(screen)
+            {
+                case 1:
+                    printToController(printMessage(0,0,std::string("AutonInfo"),1));
+                    printToController(printMessage(1,0,std::string("Name: ") + (autonList[selectedAutonIndex].autonName),1));
+                    printToController(printMessage(2,0,std::string("Color: ") + (autonList[selectedAutonIndex].allianceColor),1));
+                    break;
+                case 2:
+                    master.print(0,0,"Odometry         ");
+                    break;
+                case 3:
+                    master.print(0,0,"LBDebugger        ");
+                    break;
+                case 4:
+                    master.print(0,0,"AntiJamDebugger   ");
+                    break;
+            }
+            wait(95);
+        }
+        if(screen >1)
+        {
+            switch(screen)
+            {
+                case 2:
+                    master.print(1,0, "X:%.1lf Y:%.1lf         ",chassis.getPose().x, chassis.getPose().y);
+                    wait(125);
+                    master.print(2, 0, "R: %.1lf          ", chassis.getPose().theta);
+                    wait(125);
+                    break;
+                case 3:
+                    master.print(1,0, "LBPos: %.1lf         ",wallStake.get_position());
+                    wait(125);
+                    master.print(2, 0, "RotAng: %.1lf        ", rotation.get_angle()/100.0);
+                    wait(125);
+                    break;
+                case 4:
+                    master.print(1,0, "TarVel: %d         ",intake.get_target_velocity());
+                    wait(125);
+                    master.print(2,0,"Torque: %.3lf            ",intake.get_torque());
+                    wait(125);
+                    break;
+            }
         }
         else
         {
-            wait(30);
+            if(!printQueue.empty())
+            {
+                while(!screenMutex.try_lock()) 
+                {
+                    wait(20);
+                }
+                printMessage message = printQueue.front();
+                printQueue.pop();
+                if(screen != message.screenNum)
+                {
+                    printQueue.push(message);
+                    screenMutex.unlock();
+                    continue;
+                }
+                screenMutex.unlock();
+                if(message.rowNum == -1 || message.colNum == -1) master.rumble(message.text.c_str());
+                else master.print(message.rowNum, message.colNum,"%s", (message.text + (message.text.length() < 16 ? std::string(16 - message.text.length(), ' ') : "")).c_str());
+                wait(95);
+            }
         }
     }
 }
-
-double convertDirectGearRatio(double input)
-{
-    return input * 24.0/84.0 * 72.0/60.0;
-}
-
-// void deviceMonitor()
-// {
-//     pros::Device device(1);
-//     device.get_all_devices();
-//     for(int portNumber : usedPorts)
-//     {
-//         std::vector<pros::Device> vec[3]={};
-//         if(!device.is_installed())
-//         {
-//             device.get_plugged_type();
-//         }
-//     }
-// }
-
 
 double vel = 0;
 bool feedDirect = false;
@@ -332,7 +343,7 @@ void setIntake(double intakevel, bool feedDirectbool)
     intaker(vel);
 }
 
-void intakeAntiJam() //lucasleo64
+void intakeAntiJam() 
 {
     bool running = false;
     light.set_integration_time(20);
@@ -376,19 +387,22 @@ void intakeAntiJam() //lucasleo64
     }
 }
 
-void autIntaker(double vel)
-{
-    
-}
-
 void deviceMonitor()
 {
+    bool isMuted = false;
     bool hasPrinted = false;
     while(true)
     {
+        printf("testmain1\n");
         std::vector<int> usedPorts;
         for(deviceInfo device : devices)
         {
+            if(master.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN))
+            {
+                isMuted = !isMuted;
+                printToController(printMessage(2,0, std::string("Muted")),1000,true);
+            }
+
             pros::Device deviceChecker(device.port);
             wait(50);
             std::string deviceType;
@@ -416,7 +430,7 @@ void deviceMonitor()
             if((deviceChecker.is_installed()))
             {
                 std::string info = std::string("DC") + std::to_string(device.port) + "-" + device.deviceName + "-" + deviceType;
-                printToController(printMessage(2,0, info),2000,true, true);
+                printToController(printMessage(2,0, info),2000,true, !isMuted, "-");
                 hasPrinted = true;
             }
             else
@@ -424,7 +438,7 @@ void deviceMonitor()
                 if(deviceChecker.get_plugged_type() != device.deviceType)
                 {
                     std::string info = std::string("MisMatchTypeP") + std::to_string(device.port);
-                    printToController(printMessage(2,0,info), 2000, true, true);
+                    printToController(printMessage(2,0,info), 2000, true, !isMuted, ".");
                     hasPrinted = true;
                 }
                 usedPorts.push_back(device.port);
@@ -433,13 +447,18 @@ void deviceMonitor()
         }
         for(int i = 1; i<22; i++)
         {
+            if(master.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN))
+            {
+                isMuted = !isMuted;
+                printToController(printMessage(2,0, isMuted ? std::string("Muted") : std::string("Unmuted")),1000,true);
+            }
             if(std::find(usedPorts.begin(), usedPorts.end(), i) == usedPorts.end())
             {
                 pros::Device device(i);
                 if(!device.is_installed() && device.get_plugged_type() != pros::DeviceType::radio)
                 {
                     std::string info = std::string("UnknownDeviceP") + std::to_string(i);
-                    printToController(printMessage(2,0,info), 2000, false, true);
+                    printToController(printMessage(2,0,info), 2000, false, !isMuted, ".");
                     hasPrinted = true;
                 }
             }
@@ -470,3 +489,125 @@ bool correctIntakeJam(double intakeVel)
     }
     return false;
 }
+
+
+void recordDriveNoSDCard(int seconds)
+{
+    int arrayLength = seconds * 50 *2;
+    int stickData[arrayLength];
+    int i =0;
+    double startTime = pros::millis()/1000.0;
+    double timeOffset = 0;
+    int exitLength = arrayLength;
+    while(i<arrayLength-1)
+    {
+      int leftY = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+      int rightX = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+      stickData[i++] = leftY;
+      stickData[i++] = rightX;
+
+      chassis.arcade(leftY, rightX);
+
+      
+      if((i+1) % 50)
+      {
+        printToController(printMessage(2,0,std::string("Rec:") + std::to_string((int)(seconds-pros::millis()/1000-startTime-timeOffset)) + "SecLeft"));
+      }
+      if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT))
+      {
+        double pauseStart = pros::millis();
+        chassis.arcade(0, 0);
+        printToController(printMessage(2,0,std::string("Rec:Paused")));
+        wait(1000);
+        while(true)
+        {
+            wait(50);
+            if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT) || master.get_digital(pros::E_CONTROLLER_DIGITAL_UP)) break;
+        }
+        if(master.get_digital(pros::E_CONTROLLER_DIGITAL_UP)) 
+        {
+            exitLength = i;
+            break;
+        }
+        timeOffset = (pros::millis() - pauseStart)/1000.0;
+      }
+      pros::delay(20);
+    }
+    chassis.arcade(0, 0);
+    wait(1000);
+    printToController(printMessage(2,0,std::string("PlayBackReady")));
+    while(!master.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT))
+    {
+      wait(50);
+    }
+    wait(1000);
+    i = 0;
+    printToController(printMessage(2,0,std::string("Playback:Ongoing")));
+    while(i < exitLength-1)
+    {
+        int leftY = stickData[i++];
+        int rightX = stickData[i++];
+
+        chassis.arcade(leftY, rightX);
+        if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT))
+        {
+            double pauseStart = pros::millis();
+            chassis.arcade(0, 0);
+            printToController(printMessage(2,0,std::string("Playback:Paused")));
+            wait(1000);
+            while(true)
+            {
+                wait(50);
+                if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT) || master.get_digital(pros::E_CONTROLLER_DIGITAL_UP)) break;
+            }
+            printToController(printMessage(2,0,std::string("Playback:Ongoing")));
+        }
+        pros::delay(20.2);
+    }
+    chassis.arcade(0, 0);
+}
+
+
+
+
+//sdcard record
+    // FILE* file = fopen("/usd/data.bin", "wb");
+    // int stickData[2000];
+    // int startTime = pros::millis();
+    // int i = 0;
+    // while((int)(pros::millis-startTime) < 10000)
+    // {
+    //   int leftY = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+    //   int rightX = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+    //   stickData[i++] = leftY;
+    //   stickData[i++] = rightX;
+
+    //   chassis.arcade(leftY, rightX);
+
+    //   pros::delay(20);
+    // }
+    // chassis.arcade(0, 0);
+    // int size = sizeof(stickData) / sizeof(stickData[0]);
+    // if(file != nullptr)
+    // {
+    //   fwrite(stickData, sizeof(int), size, file);
+    //   fclose(file);
+    // }
+    // wait(5000);
+    // int readStickData[2000];
+    // FILE* file2 = fopen("/usd/data.bin", "rb");
+    // if (file2 != NULL) {
+    //     fread(readStickData, sizeof(int), 2000, file2); 
+    //     fclose(file2);
+    // }
+    // int x = 0;
+    // while(x < 1999)
+    // {
+    //   int leftY = stickData[x++];
+    //   int rightX = stickData[x++];
+
+    //   chassis.arcade(leftY, rightX);
+
+    //   pros::delay(20);
+    // }
+

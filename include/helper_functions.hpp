@@ -1,27 +1,28 @@
 #pragma once
 #include "api.h"
 #include "queue"
+#include "skills_auton.hpp"
 
 void intaker(double v);
 void intaker_wait(double v, int time);
 
 void wait(int time);
 
-/**
-* @brief Moves the wall stake mechanism to an absolute position in encoder ticks at a specific velocity
-* @param Position
-*   The position the wall stake mech will move to. Use the Wall enum (DOWN, LOAD, SCORE, INSERT), for the same positions as opcontrol
-* @param ArmVelocity
-*   The maximum velocity of the wall stake mechanism in rpm (0-600)
-*/
-void wall_staker(int pos, int arm_vel);
+// /**
+// * @brief Moves the wall stake mechanism to an absolute position in encoder ticks at a specific velocity
+// * @param Position
+// *   The position the wall stake mech will move to. Use the Wall enum (DOWN, LOAD, SCORE, INSERT), for the same positions as opcontrol
+// * @param ArmVelocity
+// *   The maximum velocity of the wall stake mechanism in rpm (0-600)
+// */
+// void wall_staker(int pos, int arm_vel);
 
-/**
-* @brief Sets the starting position of the wall stake mech
-* @param Position
-* The offset that will be applied to the wall stake. Use the Wall enum (DOWN, LOAD, SCORE, INSERT), for the same positions as opcontrol
-*/
-void setWallStakePos(int pos);
+// /**
+// * @brief Sets the starting position of the wall stake mech
+// * @param Position
+// * The offset that will be applied to the wall stake. Use the Wall enum (DOWN, LOAD, SCORE, INSERT), for the same positions as opcontrol
+// */
+// void setWallStakePos(int pos);
 
 // /**
 //  * @brief Extend the doinker piston
@@ -74,7 +75,7 @@ bool getClampState();
 */
 void stopWhenClamped(bool forceClampWhenDone = false, bool cancelAllQueuedMotions = false);
 
-void reClamp();
+// void reClamp();
 
 /** 
 * @brief Uses LemLib's odometry to determine whether the robot is close to a specific point 
@@ -117,16 +118,19 @@ struct printMessage
     int rowNum;
     int colNum;
     std::string text;
+    int screenNum = 0;
 };
 
-void printToController(printMessage printedMessage, int waitTimeInMs = 0, bool finishWaiting = false, bool rumble = false);
+void printToController(printMessage printedMessage, int waitTimeInMs = 0, bool finishWaiting = false, bool rumble = false, std::string rumblePattern = std::string("-"));
 
 void screenHandler();
 
-double convertDirectGearRatio(double input);
+// double convertDirectGearRatio(double input);
 
 extern std::queue<printMessage> printQueue;
 extern pros::Mutex screenMutex;
+extern int screen;
+const int numScreens = 5;
 
 void intakeAntiJam();
 

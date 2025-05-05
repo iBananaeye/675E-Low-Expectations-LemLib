@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "PleaseoRotate",
+    "project_name": "Plea",
     "target": "v5",
     "templates": {
       "LemLib": {
